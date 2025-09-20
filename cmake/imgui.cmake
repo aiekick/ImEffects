@@ -1,0 +1,33 @@
+set(IMGUI_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/3rdparty/imgui)
+file(GLOB IMGUI_SOURCES ${IMGUI_INCLUDE_DIR}/*.cpp)
+file(GLOB IMGUI_HEADERS ${IMGUI_INCLUDE_DIR}/*.h)
+
+add_library(imgui STATIC ${IMGUI_SOURCES})
+
+add_definitions(-DIMGUI_DISABLE_OBSOLETE_FUNCTIONS)
+
+include_directories(
+    ${IMGUI_INCLUDE_DIR}
+    ${GLFW_INCLUDE_DIR})
+
+if(IMGENIE_BACKEND STREQUAL "Vulkan")
+    target_include_directories(imgui PRIVATE ${Vulkan_INCLUDE_DIRS})
+    target_link_libraries(imgui ${GLFW_LIBRARIES} Vulkan::Vulkan)
+else()
+    add_definitions(-DIMGUI_IMPL_OPENGL_LOADER_GLAD)
+    target_include_directories(imgui PRIVATE ${GLAD_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR})
+    target_link_libraries(imgui
+        ${OPENGL_LIBRARIES}
+        ${GLFW_LIBRARIES}
+        ${GLAD_LIBRARIES})
+endif()
+
+set_target_properties(imgui PROPERTIES LINKER_LANGUAGE CXX)
+set_target_properties(imgui PROPERTIES FOLDER 3rdparty)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    #target_compile_options(imgui PRIVATE "-Wno-everything")
+else()
+    target_compile_options(imgui PRIVATE "-Wno-everything")
+endif()
+
+set(IMGUI_LIBRARIES imgui)

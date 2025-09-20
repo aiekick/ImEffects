@@ -1,0 +1,11 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run Emscripten Demo",
+            "type": "node",
+            "request": "launch",
+            "preLaunchTask": "Run Emscripten Demo"
+        }
+    ]
+}

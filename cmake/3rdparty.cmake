@@ -1,0 +1,25 @@
+include(FetchContent)
+
+if(BUILD_WEBASSEMBLY)
+    message(STATUS "Emscripten: Using built-in GLFW and WebGL ports")
+else()
+    if(IMGENIE_BACKEND STREQUAL "Vulkan")
+        find_package(Vulkan REQUIRED)
+        message(STATUS "Vulkan found: ${Vulkan_LIBRARIES}")
+    else()
+        set(OpenGL_GL_PREFERENCE GLVND)
+        find_package(OpenGL REQUIRED)
+        include(cmake/glad.cmake)
+    endif()
+
+    if(CMAKE_SYSTEM_NAME STREQUAL Linux)
+        find_package(X11 REQUIRED)
+        if(NOT X11_Xi_FOUND)
+            message(FATAL_ERROR "X11 Xi library is required")
+        endif()
+    endif()
+
+    include(cmake/glfw.cmake)
+endif()
+
+include(cmake/imgui.cmake)

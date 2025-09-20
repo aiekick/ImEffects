@@ -1,0 +1,251 @@
+{
+    "version": 6,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 31,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "base",
+            "hidden": true,
+            "generator": "Ninja Multi-Config",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "installDir": "${sourceDir}/install/${presetName}"
+        },
+        {
+            "name": "base-windows",
+            "hidden": true,
+            "inherits": "base",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            },
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            },
+            "toolset": {
+                "value": "host=x64",
+                "strategy": "external"
+            }
+        },
+        {
+            "name": "base-linux",
+            "hidden": true,
+            "inherits": "base",
+            "condition": {
+                "type": "inList",
+                "string": "${hostSystemName}",
+                "list": [
+                    "Linux",
+                    "Darwin"
+                ]
+            }
+        },
+        {
+            "name": "windows-emscripten",
+            "displayName": "emscripten",
+            "inherits": "base-windows",
+            "generator": "Ninja",
+            "toolchainFile": "$env{EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            },
+            "environment": {
+                "EMSDK_PYTHON": "$env{EMSDK}/python/3.13.3_64bit/python.exe",
+                "PATH": "$env{EMSDK}/python/3.13.3_64bit;$penv{PATH}"
+            }
+        },
+        {
+            "name": "windows-msvc",
+            "displayName": "msvc (OpenGL)",
+            "inherits": "base-windows",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "cl",
+                "CMAKE_CXX_COMPILER": "cl",
+                "IMGENIE_BACKEND": "OpenGL"
+            }
+        },
+        {
+            "name": "windows-msvc-vulkan",
+            "displayName": "msvc (Vulkan)",
+            "inherits": "base-windows",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "cl",
+                "CMAKE_CXX_COMPILER": "cl",
+                "IMGENIE_BACKEND": "Vulkan"
+            }
+        },
+        {
+            "name": "windows-clang",
+            "displayName": "clang (OpenGL)",
+            "inherits": "base-windows",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "clang-cl",
+                "CMAKE_CXX_COMPILER": "clang-cl",
+                "IMGENIE_BACKEND": "OpenGL"
+            }
+        },
+        {
+            "name": "windows-clang-vulkan",
+            "displayName": "clang (Vulkan)",
+            "inherits": "base-windows",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "clang-cl",
+                "CMAKE_CXX_COMPILER": "clang-cl",
+                "IMGENIE_BACKEND": "Vulkan"
+            }
+        },
+        {
+            "name": "linux-emscripten",
+            "displayName": "emscripten",
+            "inherits": "base-linux",
+            "generator": "Ninja",
+            "toolchainFile": "$env{EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "linux-gcc",
+            "displayName": "gcc (OpenGL)",
+            "inherits": "base-linux",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "gcc",
+                "CMAKE_CXX_COMPILER": "g++",
+                "IMGENIE_BACKEND": "OpenGL"
+            }
+        },
+        {
+            "name": "linux-gcc-vulkan",
+            "displayName": "gcc (Vulkan)",
+            "inherits": "base-linux",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "gcc",
+                "CMAKE_CXX_COMPILER": "g++",
+                "IMGENIE_BACKEND": "Vulkan"
+            }
+        },
+        {
+            "name": "linux-clang",
+            "displayName": "clang (OpenGL)",
+            "inherits": "base-linux",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "clang",
+                "CMAKE_CXX_COMPILER": "clang++",
+                "IMGENIE_BACKEND": "OpenGL"
+            }
+        },
+        {
+            "name": "linux-clang-vulkan",
+            "displayName": "clang (Vulkan)",
+            "inherits": "base-linux",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "clang",
+                "CMAKE_CXX_COMPILER": "clang++",
+                "IMGENIE_BACKEND": "Vulkan"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "base",
+            "hidden": true,
+            "jobs": 8
+        },
+        {
+            "name": "windows-emscripten",
+            "displayName": "emscripten",
+            "inherits": "base",
+            "configurePreset": "windows-emscripten"
+        },
+        {
+            "name": "windows-msvc",
+            "displayName": "msvc (OpenGL)",
+            "inherits": "base",
+            "configurePreset": "windows-msvc"
+        },
+        {
+            "name": "windows-msvc-vulkan",
+            "displayName": "msvc (Vulkan)",
+            "inherits": "base",
+            "configurePreset": "windows-msvc-vulkan"
+        },
+        {
+            "name": "windows-clang",
+            "displayName": "clang (OpenGL)",
+            "inherits": "base",
+            "configurePreset": "windows-clang"
+        },
+        {
+            "name": "windows-clang-vulkan",
+            "displayName": "clang (Vulkan)",
+            "inherits": "base",
+            "configurePreset": "windows-clang-vulkan"
+        },
+        {
+            "name": "linux-emscripten",
+            "displayName": "emscripten",
+            "inherits": "base",
+            "configurePreset": "linux-emscripten"
+        },
+        {
+            "name": "linux-gcc",
+            "displayName": "gcc (OpenGL)",
+            "inherits": "base",
+            "configurePreset": "linux-gcc"
+        },
+        {
+            "name": "linux-gcc-vulkan",
+            "displayName": "gcc (Vulkan)",
+            "inherits": "base",
+            "configurePreset": "linux-gcc-vulkan"
+        },
+        {
+            "name": "linux-clang",
+            "displayName": "clang (OpenGL)",
+            "inherits": "base",
+            "configurePreset": "linux-clang"
+        },
+        {
+            "name": "linux-clang-vulkan",
+            "displayName": "clang (Vulkan)",
+            "inherits": "base",
+            "configurePreset": "linux-clang-vulkan"
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "base",
+            "hidden": true,
+            "output": {
+                "outputOnFailure": true
+            },
+            "execution": {
+                "noTestsAction": "error",
+                "stopOnFailure": true,
+                "jobs": 12
+            }
+        },
+        {
+            "name": "windows-msvc",
+            "displayName": "msvc",
+            "inherits": "base",
+            "configurePreset": "windows-msvc"
+        },
+        {
+            "name": "windows-clang",
+            "displayName": "clang",
+            "inherits": "base",
+            "configurePreset": "windows-clang"
+        },
+        {
+            "name": "linux-gcc",
+            "displayName": "gcc",
+            "inherits": "base",
+            "configurePreset": "linux-gcc"
+        }
+    ]
+}

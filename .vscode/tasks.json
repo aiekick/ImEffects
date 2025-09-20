@@ -1,0 +1,39 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Start Emscripten HTTP Server",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "-m",
+                "http.server",
+                "8080"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/bin"
+            },
+            "isBackground": true,
+            "problemMatcher": {
+                "pattern": {
+                    "regexp": "^$"
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": "^Serving HTTP",
+                    "endsPattern": "^Serving HTTP"
+                }
+            }
+        },
+        {
+            "label": "Run Emscripten Demo",
+            "dependsOn": "Start Emscripten HTTP Server",
+            "type": "shell",
+            "command": "start",
+            "args": [
+                "http://localhost:8080/ImGenieOpenGLDemo_Emscripten_.html"
+            ],
+            "problemMatcher": []
+        }
+    ]
+}

@@ -1,0 +1,16 @@
+
+.DS_Store
+/cmake-build-debug/
+/cmake-build-release/
+/.idea/
+build
+/bin/*.exe
+/bin/debug/*.pdb
+/bin/*.ini
+/.claude
+/bin/debug/Debug/*.pdb
+/bin/*.data
+/bin/*.html
+/bin/*.js
+/bin/*.wasm
+/bin/*.ilk

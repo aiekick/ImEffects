@@ -1,0 +1,18 @@
+[submodule "3rdparty/glfw"]
+	path = 3rdparty/glfw
+	url = https://github.com/glfw/glfw.git
+	branch = master
+[submodule "3rdparty/glad"]
+	path = 3rdparty/glad
+	url = https://github.com/Dav1dde/glad.git
+	branch = c
+[submodule "3rdparty/imgui"]
+	path = 3rdparty/imgui
+	url = https://github.com/ocornut/imgui.git
+	branch = docking
+[submodule "ImGenie"]
+	path = ImGenie
+	url = https://github.com/aiekick/ImGenie.git
+[submodule "ImCoolBar"]
+	path = ImCoolBar
+	url = https://github.com/aiekick/ImCoolBar.git

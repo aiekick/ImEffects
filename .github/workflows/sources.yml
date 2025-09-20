@@ -1,0 +1,23 @@
+name: sources
+
+on:
+  push:
+    branches:
+      - DemoApp
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: DemoApp
+        token: ${{ secrets.PAT_SUBMODULES }}
+        submodules: recursive
+    - name: configure
+      run: cmake -B build
+    - name: upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ImCoolBarTransitions_sources
+        path: ${{github.workspace}}
