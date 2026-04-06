@@ -30,8 +30,8 @@ private:
     struct AppDatas {
         std::vector<IconEntry> icons{};
         ImTextureRef bgRef{};
-        ImGenieSettings genieSettings{};
-        ImGenieSettings genieDefaultSettings{};
+        ImGenieParams genieSettings{};
+        ImGenieParams genieDefaultSettings{};
         ImGui::ImCoolBarSettings coolBarSettings;
         ImGui::ImCoolBarSettings coolBarDefaultSettings;
     } m_datas;
