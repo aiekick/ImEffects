@@ -181,7 +181,8 @@ void Frame::m_drawDialogs() {
 
     // ImGuiFileDialog
     bool opened = ImGuiFileDialog::Instance()->IsOpened("OpenDlg");
-    if (ImGenie::Allow("Open Dialog##OpenDlg", ImRect(), &opened, &m_datas.genieSettings)) {
+    m_datas.genieSettings.transitions.genie.destRect = {};
+    if (ImGenie::Allow("Open Dialog##OpenDlg", &opened, &m_datas.genieSettings)) {
         if (opened) {
             if (ImGuiFileDialog::Instance()->Display("OpenDlg")) {
                 if (ImGuiFileDialog::Instance()->IsOk()) {
