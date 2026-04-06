@@ -16,3 +16,6 @@
 [submodule "ImCoolBar"]
 	path = ImCoolBar
 	url = https://github.com/aiekick/ImCoolBar.git
+[submodule "ImGuiFileDialog"]
+	path = ImGuiFileDialog
+	url = https://github.com/aiekick/ImGuiFileDialog.git

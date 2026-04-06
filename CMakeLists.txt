@@ -107,15 +107,20 @@ if(NOT IMGENIE_BACKEND STREQUAL "Vulkan")
     )
 endif()
 
+add_subdirectory(ImGuiFileDialog)
+target_link_libraries(ImGuiFileDialog PRIVATE ${IMGUI_LIBRARIES})
+target_include_directories(ImGuiFileDialog PRIVATE ${CMAKE_SOURCE_DIR})
+set_target_properties(ImGuiFileDialog PROPERTIES FOLDER libs)
+
 add_subdirectory(ImCoolBar)
-target_link_libraries(ImCoolBar PRIVATE
-    ${IMGUI_LIBRARIES}
-)
+target_link_libraries(ImCoolBar PRIVATE ${IMGUI_LIBRARIES})
+target_include_directories(ImCoolBar PRIVATE ${CMAKE_SOURCE_DIR})
+set_target_properties(ImCoolBar PROPERTIES FOLDER libs)
 
 add_subdirectory(ImGenie)
-target_link_libraries(ImGenie PRIVATE
-    ${IMGUI_LIBRARIES}
-)
+target_link_libraries(ImGenie PRIVATE ${IMGUI_LIBRARIES})
+target_include_directories(ImGenie PRIVATE ${CMAKE_SOURCE_DIR})
+set_target_properties(ImGenie PROPERTIES FOLDER libs)
 
 set(SOURCES
     ${RES_SOURCES}
@@ -169,6 +174,7 @@ if(BUILD_WEBASSEMBLY)
     # Emscripten traite les chaînes commençant par -s comme des options de link
     target_link_libraries(${PROJECT}
         ${IMGUI_LIBRARIES}
+        ImGuiFileDialog
 		ImCoolBar
         ImGenie
         "-s USE_GLFW=3"
@@ -191,6 +197,7 @@ elseif(IMGENIE_BACKEND STREQUAL "Vulkan")
         ${GLFW_LIBRARIES}
         ${IMGUI_LIBRARIES}
         Vulkan::Vulkan
+        ImGuiFileDialog
 		ImCoolBar
         ImGenie
     )
@@ -200,18 +207,11 @@ else()
         ${GLFW_LIBRARIES}
         ${GLAD_LIBRARIES}
         ${IMGUI_LIBRARIES}
+        ImGuiFileDialog
 		ImCoolBar
         ImGenie
     )
 endif()
-
-target_include_directories(ImCoolBar PRIVATE
-    ${CMAKE_SOURCE_DIR}
-)
-
-target_include_directories(ImGenie PRIVATE
-    ${CMAKE_SOURCE_DIR}
-)
 
 set_target_properties(${PROJECT} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${FINAL_BIN_DIR}")
 set_target_properties(${PROJECT} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG "${FINAL_BIN_DIR}")

@@ -11,6 +11,7 @@
 
 #include <ImGenie/ImGenie.h>
 #include <ImCoolBar/ImCoolBar.h>
+#include <ImGuiFileDialog/ImGuiFileDialog.h>
 
 class Frame {
 public:
@@ -29,8 +30,8 @@ private:
     struct AppDatas {
         std::vector<IconEntry> icons{};
         ImTextureRef bgRef{};
-        ImGenieSettings genieSettings{};
-        ImGenieSettings genieDefaultSettings{};
+        ImGenieParams genieSettings{};
+        ImGenieParams genieDefaultSettings{};
         ImGui::ImCoolBarSettings coolBarSettings;
         ImGui::ImCoolBarSettings coolBarDefaultSettings;
     } m_datas;
@@ -54,5 +55,6 @@ private:
     void m_drawBackground(const ImTextureRef& arTexRef, const ImVec2& arDisplaySize);
     void m_drawBar();
     void m_drawDialogs();
+    void m_drawMainMenubar();
     const char* getWindowNameFromIcon(const IconEntry& aIcon) const;
 };

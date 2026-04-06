@@ -50,6 +50,7 @@ void Frame::unit() {
 
 void Frame::update(const ImVec2& arDisplaySize) {
     m_drawBackground(m_datas.bgRef, arDisplaySize);
+    m_drawMainMenubar();
     m_drawDialogs();
     m_drawBar();
 }
@@ -125,9 +126,12 @@ void Frame::m_drawBar() {
 void Frame::m_drawDialogs() {
     for (auto& icon : m_datas.icons) {
         const auto* pWinName = getWindowNameFromIcon(icon);
+        // Update genie destRect from button position each frame
+        const auto& br = icon.buttonRect;
+        m_datas.genieSettings.transitions.genie.destRect = {br.Min.x, br.Min.y, br.Max.x, br.Max.y};
         if (icon.name == "Settings" || icon.name == "Activa" || icon.name == "Magnet" || icon.name == "GeoGebra") {
             // These windows manage their own Begin/End, use Allow() manually
-            if (ImGenie::Allow(pWinName, icon.buttonRect, &icon.show, &m_datas.genieSettings)) {
+            if (ImGenie::Allow(pWinName, &icon.show, &m_datas.genieSettings)) {
                 if (icon.show) {
                     if (icon.name == "Settings") {
                         ImGui::ShowDemoWindow(&icon.show);
@@ -142,11 +146,51 @@ void Frame::m_drawDialogs() {
             }
         } else {
             // Normal windows: use the Begin/End wrapper
-            if (ImGenie::Begin(icon.name.c_str(), icon.buttonRect, &icon.show, ImGuiWindowFlags_None, &m_datas.genieSettings)) {
+            if (ImGenie::Begin(icon.name.c_str(), &icon.show, ImGuiWindowFlags_None, &m_datas.genieSettings)) {
                 ImGui::Image(icon.texRef, ImVec2(256, 256));
                 ImGenie::End();
             }
         }
+    }
+
+    // ImGuiFileDialog
+    bool opened = ImGuiFileDialog::Instance()->IsOpened("OpenDlg");
+    m_datas.genieSettings.transitions.genie.destRect = {};
+    if (ImGenie::Allow("Open Dialog##OpenDlg", &opened, &m_datas.genieSettings)) {
+        if (opened) {
+            if (ImGuiFileDialog::Instance()->Display("OpenDlg")) {
+                if (ImGuiFileDialog::Instance()->IsOk()) {
+                }
+                ImGuiFileDialog::Instance()->Close();
+            }
+        }
+    }
+}
+
+void Frame::m_drawMainMenubar() {
+    if (ImGui::BeginMainMenuBar()) {
+        if (ImGui::BeginMenu(" Dialogs")) {
+            if (ImGui::MenuItem(" Open")) {
+                IGFD::FileDialogConfig config;
+                config.countSelectionMax = 1;
+                ImGuiFileDialog::Instance()->OpenDialog("OpenDlg", "Open Dialog", "All File{((.*))}", config);
+            }
+
+            ImGui::EndMenu();
+        }
+
+        ImGui::Spacing();
+
+        // ImGui Infos
+        static const int sBufLen = 50 + 1;
+        static char buf[sBufLen] = "\0";
+        ImFormatString(buf, sBufLen, "Dear ImGui %s (Docking)", ImGui::GetVersion());
+        const auto size = ImGui::CalcTextSize(buf);
+
+        ImGui::ItemSize(ImVec2(ImGui::GetContentRegionAvail().x - size.x - ImGui::GetStyle().FramePadding.x * 2.0f, 0.0f));
+        ImGui::Text("%s", buf);
+
+        ImGui::EndMainMenuBar();
     }
 }
 
