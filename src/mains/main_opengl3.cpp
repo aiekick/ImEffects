@@ -123,6 +123,7 @@ int main(int, char**) {
     if (!loc) {
         printf("setlocale fail to apply with this compiler. it seems the unicode will be NOK\n");
     }
+	std::setlocale(LC_NUMERIC, "C");
 
     // Setup window
     glfwSetErrorCallback(glfw_error_callback);
