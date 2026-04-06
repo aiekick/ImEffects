@@ -50,6 +50,7 @@ void Frame::unit() {
 
 void Frame::update(const ImVec2& arDisplaySize) {
     m_drawBackground(m_datas.bgRef, arDisplaySize);
+    m_drawMainMenubar();
     m_drawDialogs();
     m_drawBar();
 }
@@ -147,6 +148,45 @@ void Frame::m_drawDialogs() {
                 ImGenie::End();
             }
         }
+    }
+
+    // ImGuiFileDialog
+    bool opened = ImGuiFileDialog::Instance()->IsOpened("OpenDlg");
+    if (ImGenie::Allow("Open Dialog##OpenDlg", ImRect(), &opened, &m_datas.genieSettings)) {
+        if (opened) {
+            if (ImGuiFileDialog::Instance()->Display("OpenDlg")) {
+                if (ImGuiFileDialog::Instance()->IsOk()) {
+                }
+                ImGuiFileDialog::Instance()->Close();
+            }
+        }
+    }
+}
+
+void Frame::m_drawMainMenubar() {
+    if (ImGui::BeginMainMenuBar()) {
+        if (ImGui::BeginMenu(" Dialogs")) {
+            if (ImGui::MenuItem(" Open")) {
+                IGFD::FileDialogConfig config;
+                config.countSelectionMax = 1;
+                ImGuiFileDialog::Instance()->OpenDialog("OpenDlg", "Open Dialog", "All File{((.*))}", config);
+            }
+
+            ImGui::EndMenu();
+        }
+
+        ImGui::Spacing();
+
+        // ImGui Infos
+        static const int sBufLen = 50 + 1;
+        static char buf[sBufLen] = "\0";
+        ImFormatString(buf, sBufLen, "Dear ImGui %s (Docking)", ImGui::GetVersion());
+        const auto size = ImGui::CalcTextSize(buf);
+
+        ImGui::ItemSize(ImVec2(ImGui::GetContentRegionAvail().x - size.x - ImGui::GetStyle().FramePadding.x * 2.0f, 0.0f));
+        ImGui::Text("%s", buf);
+
+        ImGui::EndMainMenuBar();
     }
 }
 

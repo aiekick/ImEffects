@@ -11,6 +11,7 @@
 
 #include <ImGenie/ImGenie.h>
 #include <ImCoolBar/ImCoolBar.h>
+#include <ImGuiFileDialog/ImGuiFileDialog.h>
 
 class Frame {
 public:
@@ -54,5 +55,6 @@ private:
     void m_drawBackground(const ImTextureRef& arTexRef, const ImVec2& arDisplaySize);
     void m_drawBar();
     void m_drawDialogs();
+    void m_drawMainMenubar();
     const char* getWindowNameFromIcon(const IconEntry& aIcon) const;
 };
