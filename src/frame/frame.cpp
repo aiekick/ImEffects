@@ -181,28 +181,41 @@ void Frame::m_drawDialogs() {
 
     // ImGuiFileDialog
     bool opened = ImGuiFileDialog::Instance()->IsOpened("OpenDlg");
-    m_datas.genieSettings.transitions.genie.destRect = {};
-    if (ImGenie::Allow("Open Dialog##OpenDlg", &opened, &m_datas.genieSettings)) {
+    if (ImGenie::Allow("Open Dialog##OpenDlg", ImRect(), &opened, &m_datas.genieSettings)) {
         if (opened) {
             if (ImGuiFileDialog::Instance()->Display("OpenDlg")) {
-                if (ImGuiFileDialog::Instance()->IsOk()) {}
+                if (ImGuiFileDialog::Instance()->IsOk()) {
+                }
                 ImGuiFileDialog::Instance()->Close();
             }
         }
     }
+}
 
-    // simple window, with no bool for close the dialog
-    // the bool is not used for trigger the close window effect
-    // in this case you must call ImGenie::Close
-    // like in this sample
-    static ImGenieParams params;
-    params.transitions.transitionMode = ImGenieTransitionMode_Slide;
-    if (ImGenie::Begin("test", nullptr, 0, &params)) {
-        ImGui::Text("%s", "hello");
-        if (ImGui::Button("Close")) {
-            ImGenie::Close("test");
+void Frame::m_drawMainMenubar() {
+    if (ImGui::BeginMainMenuBar()) {
+        if (ImGui::BeginMenu(" Dialogs")) {
+            if (ImGui::MenuItem(" Open")) {
+                IGFD::FileDialogConfig config;
+                config.countSelectionMax = 1;
+                ImGuiFileDialog::Instance()->OpenDialog("OpenDlg", "Open Dialog", "All File{((.*))}", config);
+            }
+
+            ImGui::EndMenu();
         }
-        ImGenie::End();
+
+        ImGui::Spacing();
+
+        // ImGui Infos
+        static const int sBufLen = 50 + 1;
+        static char buf[sBufLen] = "\0";
+        ImFormatString(buf, sBufLen, "Dear ImGui %s (Docking)", ImGui::GetVersion());
+        const auto size = ImGui::CalcTextSize(buf);
+
+        ImGui::ItemSize(ImVec2(ImGui::GetContentRegionAvail().x - size.x - ImGui::GetStyle().FramePadding.x * 2.0f, 0.0f));
+        ImGui::Text("%s", buf);
+
+        ImGui::EndMainMenuBar();
     }
 }
 

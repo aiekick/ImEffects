@@ -19,3 +19,6 @@
 [submodule "ImGuiFileDialog"]
 	path = ImGuiFileDialog
 	url = https://github.com/aiekick/ImGuiFileDialog.git
+[submodule "ImNodal"]
+	path = ImNodal
+	url = https://github.com/aiekick/ImNodal.git

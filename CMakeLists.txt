@@ -122,6 +122,11 @@ target_link_libraries(ImGenie PRIVATE ${IMGUI_LIBRARIES})
 target_include_directories(ImGenie PRIVATE ${CMAKE_SOURCE_DIR})
 set_target_properties(ImGenie PROPERTIES FOLDER libs)
 
+add_subdirectory(ImNodal)
+target_link_libraries(ImNodal PRIVATE ${IMGUI_LIBRARIES})
+target_include_directories(ImNodal PRIVATE ${CMAKE_SOURCE_DIR})
+set_target_properties(ImNodal PROPERTIES FOLDER libs)
+
 set(SOURCES
     ${RES_SOURCES}
     ${SRC_SOURCES}
@@ -177,6 +182,7 @@ if(BUILD_WEBASSEMBLY)
         ImGuiFileDialog
 		ImCoolBar
         ImGenie
+        ImNodal
         "-s USE_GLFW=3"
         "-s USE_WEBGL2=1"
         "-s FULL_ES3=1"
@@ -200,6 +206,7 @@ elseif(IMGENIE_BACKEND STREQUAL "Vulkan")
         ImGuiFileDialog
 		ImCoolBar
         ImGenie
+        ImNodal
     )
 else()
     target_link_libraries(${PROJECT} PRIVATE
@@ -210,6 +217,7 @@ else()
         ImGuiFileDialog
 		ImCoolBar
         ImGenie
+        ImNodal
     )
 endif()
 
