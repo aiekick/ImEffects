@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+#include <ImNodal/ImNodal.h>
 #include <ImGenie/ImGenie.h>
 #include <ImCoolBar/ImCoolBar.h>
 #include <ImGuiFileDialog/ImGuiFileDialog.h>
@@ -34,6 +35,16 @@ private:
         ImGenieParams genieDefaultSettings{};
         ImGui::ImCoolBarSettings coolBarSettings;
         ImGui::ImCoolBarSettings coolBarDefaultSettings;
+        ImNodal::CanvasSettings canvasSettings;
+        ImNodal::GraphSettings graphSettings;
+
+        // Demo graph data (M1) — user-retained positions; ImNodal just echoes.
+        ImVec2 nodeAPos{-150.0f, -60.0f};
+        ImVec2 nodeBPos{ 120.0f, -20.0f};
+        float  nodeA_valueA{1.0f};
+        float  nodeA_valueB{2.0f};
+        float  nodeB_multiplier{0.5f};
+        bool   nodalContextCreated{false};
     } m_datas;
 
     LoadTextureFunc m_loadTextureFunc{};
@@ -54,6 +65,7 @@ private:
     ImTextureRef m_loadTexture(const std::string& arFilePathName);
     void m_drawBackground(const ImTextureRef& arTexRef, const ImVec2& arDisplaySize);
     void m_drawBar();
+    void m_drawGraph();
     void m_drawDialogs();
     void m_drawMainMenubar();
     const char* getWindowNameFromIcon(const IconEntry& aIcon) const;

@@ -36,6 +36,9 @@ bool Frame::init() {
 #endif
     m_datas.coolBarDefaultSettings = m_datas.coolBarSettings;
     m_datas.genieDefaultSettings = m_datas.genieSettings;
+    // ImNodal context (auto-becomes current if none exists)
+    ImNodal::CreateContext();
+    m_datas.nodalContextCreated = true;
     return true;
 }
 
@@ -46,12 +49,17 @@ void Frame::unit() {
         }
         m_destroyTextureFunc(m_datas.bgRef);
     }
+    if (m_datas.nodalContextCreated) {
+        ImNodal::DestroyContext();
+        m_datas.nodalContextCreated = false;
+    }
 }
 
 void Frame::update(const ImVec2& arDisplaySize) {
     m_drawBackground(m_datas.bgRef, arDisplaySize);
     m_drawMainMenubar();
     m_drawDialogs();
+    m_drawGraph();
     m_drawBar();
 }
 
@@ -123,31 +131,97 @@ void Frame::m_drawBar() {
     }
 }
 
-void Frame::m_drawMainMenubar() {
-    if (ImGui::BeginMainMenuBar()) {
-        if (ImGui::BeginMenu(" Dialogs")) {
-            if (ImGui::MenuItem(" Open")) {
-                IGFD::FileDialogConfig config;
-                config.countSelectionMax = 1;
-                ImGuiFileDialog::Instance()->OpenDialog("OpenDlg", "Open Dialog", "All File{((.*))}", config);
+void Frame::m_drawGraph() {
+    // --- Main ImNodal demo window (canvas + graph with 2 nodes) ---
+    if (ImGenie::Begin("ImNodal", nullptr, ImGuiWindowFlags_None, &m_datas.genieSettings)) {
+        m_datas.canvasSettings.drawGrid = true;
+        if (ImNodal::BeginCanvas("ImNodal", ImVec2(0, 0), m_datas.canvasSettings)) {
+            if (ImNodal::BeginGraph(1 /* root graph id */, m_datas.graphSettings)) {
+                // --- Node A : Add (A + B => Result) ---
+                if (ImNodal::BeginNode(100 /* id */, &m_datas.nodeAPos)) {
+                    if (ImNodal::BeginHeader()) {
+                        ImGui::TextUnformatted("Add");
+                        ImNodal::EndHeader();
+                    }
+                    if (ImNodal::BeginInputs()) {
+                        if (ImNodal::BeginInputSlot(101, "A")) {
+                            ImGui::SetNextItemWidth(60.0f);
+                            ImGui::DragFloat("##A", &m_datas.nodeA_valueA, 0.01f);
+                            ImNodal::EndSlot();
+                        }
+                        if (ImNodal::BeginInputSlot(102, "B")) {
+                            ImGui::SetNextItemWidth(60.0f);
+                            ImGui::DragFloat("##B", &m_datas.nodeA_valueB, 0.01f);
+                            ImNodal::EndSlot();
+                        }
+                        ImNodal::EndInputs();
+                    }
+                    if (ImNodal::BeginCenter()) {
+                        ImGui::Text("= %.2f", m_datas.nodeA_valueA + m_datas.nodeA_valueB);
+                        ImNodal::EndCenter();
+                    }
+                    if (ImNodal::BeginOutputs()) {
+                        if (ImNodal::BeginOutputSlot(103, "Result")) {
+                            ImNodal::EndSlot();
+                        }
+                        ImNodal::EndOutputs();
+                    }
+                    if (ImNodal::BeginFooter()) {
+                        ImGui::TextDisabled("id=100");
+                        ImNodal::EndFooter();
+                    }
+                    ImNodal::EndNode();
+                }
+
+                // --- Node B : Scale (X => Y) ---
+                if (ImNodal::BeginNode(200, &m_datas.nodeBPos)) {
+                    if (ImNodal::BeginHeader()) {
+                        ImGui::TextUnformatted("Scale");
+                        ImNodal::EndHeader();
+                    }
+                    if (ImNodal::BeginInputs()) {
+                        if (ImNodal::BeginInputSlot(201, "X")) {
+                            ImNodal::EndSlot();
+                        }
+                        ImNodal::EndInputs();
+                    }
+                    if (ImNodal::BeginCenter()) {
+                        ImGui::SetNextItemWidth(80.0f);
+                        ImGui::DragFloat("k", &m_datas.nodeB_multiplier, 0.01f);
+                        ImNodal::EndCenter();
+                    }
+                    if (ImNodal::BeginOutputs()) {
+                        if (ImNodal::BeginOutputSlot(202, "Y")) {
+                            ImNodal::EndSlot();
+                        }
+                        ImNodal::EndOutputs();
+                    }
+                    ImNodal::EndNode();
+                }
+
+                ImNodal::EndGraph();
             }
-            ImGui::EndMenu();
+            ImNodal::EndCanvas();
         }
-
-        ImGui::Spacing();
-
-        // ImGui Infos
-        static const int sBufLen = 50 + 1;
-        static char buf[sBufLen] = "\0";
-        ImFormatString(buf, sBufLen, "Dear ImGui %s (Docking)", ImGui::GetVersion());
-        const auto size = ImGui::CalcTextSize(buf);
-
-        ImGui::ItemSize(ImVec2(ImGui::GetContentRegionAvail().x - size.x - ImGui::GetStyle().FramePadding.x * 2.0f, 0.0f));
-        ImGui::Text("%s", buf);
-
-        ImGui::EndMainMenuBar();
+        ImGenie::End();
     }
+
+    // --- Bonus : a standalone slot in a plain ImGui window (no BeginGraph) ---
+    // Verifies that the slot primitive works outside of any graph context.
+    if (ImGui::Begin("Free Slot Demo")) {
+        ImGui::TextUnformatted("A slot outside any graph:");
+        if (ImNodal::BeginInputSlot(999, "Var")) {
+            ImNodal::EndSlot();
+        }
+        ImGui::Separator();
+        ImGui::TextUnformatted("M1 status:");
+        ImGui::Text("Selected node: %llu", (unsigned long long)ImNodal::GetSelectedNode());
+        ImGui::Text("Dragging A: %d", (int)ImNodal::IsNodeDragging(100));
+        ImGui::Text("Dragging B: %d", (int)ImNodal::IsNodeDragging(200));
+    }
+    ImGui::End();
 }
+
 
 void Frame::m_drawDialogs() {
     for (auto& icon : m_datas.icons) {

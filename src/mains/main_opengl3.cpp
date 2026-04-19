@@ -26,6 +26,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <src/helpers/stb_image.h>
 
+#include <ImNodal/ImNodal.h>
 #include <ImGenie/ImGenie.h>
 
 #ifdef __EMSCRIPTEN__
@@ -182,6 +183,8 @@ int main(int, char**) {
     ImGui::CreateContext();
     IMGENIE_CHECKVERSION();
     ImGenie::CreateContext();
+    IMNODAL_CHECKVERSION();
+    ImNodal::CreateContext();
 
     ImGuiIO& io = ImGui::GetIO();
     (void)io;
@@ -300,6 +303,7 @@ int main(int, char**) {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
 
+    ImNodal::DestroyContext();
     ImGenie::DestroyContext();
     ImGui::DestroyContext();
 
