@@ -132,7 +132,7 @@ void Frame::m_drawBar() {
 }
 
 void Frame::m_drawGraph() {
-    // --- Main ImNodal demo window (canvas + graph with 2 nodes) ---
+    // --- Main ImNodal demo window (canvas + graph with 2 nodes + links) ---
     if (ImGenie::Begin("ImNodal", nullptr, ImGuiWindowFlags_None, &m_datas.genieSettings)) {
         m_datas.canvasSettings.drawGrid = true;
         if (ImNodal::BeginCanvas("ImNodal", ImVec2(0, 0), m_datas.canvasSettings)) {
@@ -199,6 +199,94 @@ void Frame::m_drawGraph() {
                     ImNodal::EndNode();
                 }
 
+                // --- Reroutes (spawned on link double-click below) ---
+                for (auto& rr : m_datas.reroutes) {
+                    if (ImNodal::BeginRerouteNode(rr.nodeId, rr.slotId, &rr.pos)) {
+                        ImNodal::EndRerouteNode();
+                    }
+                }
+
+                // --- Render existing links + detect double-click to split ---
+                struct PendingSplit { size_t linkIndex; ImVec2 pos; };
+                std::vector<PendingSplit> pendingSplits;
+                for (size_t i = 0; i < m_datas.links.size(); ++i) {
+                    const auto& l = m_datas.links[i];
+                    ImNodal::Link(l.id, l.from, l.to);
+                    if (ImNodal::IsLinkDoubleClicked(l.id)) {
+                        // Mouse pos is in canvas-local space inside BeginGraph.
+                        pendingSplits.push_back({i, ImGui::GetIO().MousePos});
+                    }
+                }
+
+                // --- Connection creation (thedmd-style flow) ---
+                if (ImNodal::BeginConnectionCreate()) {
+                    ImNodal::Id from = 0, to = 0;
+                    if (ImNodal::QueryNewLink(&from, &to)) {
+                        // Rule: endpoints must not both be inputs or both outputs.
+                        // InOut slots match anything.
+                        const auto rFrom = ImNodal::GetSlotRole(from);
+                        const auto rTo   = ImNodal::GetSlotRole(to);
+                        const bool ok =
+                            (rFrom == ImNodal::SlotRole_InOut) ||
+                            (rTo   == ImNodal::SlotRole_InOut) ||
+                            (rFrom != rTo);
+                        if (ok) {
+                            if (ImNodal::AcceptNewLink()) {
+                                if (rFrom == ImNodal::SlotRole_Input && rTo == ImNodal::SlotRole_Output) {
+                                    std::swap(from, to);
+                                }
+                                m_datas.links.push_back({m_datas.nextLinkId++, from, to});
+                            }
+                        } else {
+                            ImNodal::RejectNewLink("same direction");
+                        }
+                    }
+                    ImNodal::EndConnectionCreate();
+                }
+
+                // --- Apply pending link splits (from double-click) ---
+                for (auto it = pendingSplits.rbegin(); it != pendingSplits.rend(); ++it) {
+                    if (it->linkIndex >= m_datas.links.size()) continue;
+                    const auto old = m_datas.links[it->linkIndex];
+                    AppDatas::RerouteRecord rr;
+                    rr.nodeId = m_datas.nextRerouteNodeId++;
+                    rr.slotId = m_datas.nextRerouteSlotId++;
+                    rr.pos    = it->pos;
+                    m_datas.reroutes.push_back(rr);
+                    m_datas.links.erase(m_datas.links.begin() + (ptrdiff_t)it->linkIndex);
+                    m_datas.links.push_back({m_datas.nextLinkId++, old.from,  rr.slotId});
+                    m_datas.links.push_back({m_datas.nextLinkId++, rr.slotId, old.to});
+                }
+
+                // --- Delete key: remove selected link, OR selected reroute + its links ---
+                if (ImGui::IsKeyPressed(ImGuiKey_Delete)) {
+                    const ImNodal::Id selLink = ImNodal::GetSelectedLink();
+                    const ImNodal::Id selNode = ImNodal::GetSelectedNode();
+                    if (selLink != 0) {
+                        for (auto lit = m_datas.links.begin(); lit != m_datas.links.end(); ++lit) {
+                            if (lit->id == selLink) { m_datas.links.erase(lit); break; }
+                        }
+                        ImNodal::SetSelectedLink(0);
+                    } else if (selNode != 0) {
+                        // If the selected node is a reroute, drop all links touching
+                        // its slot, then drop the reroute itself.
+                        for (auto rit = m_datas.reroutes.begin(); rit != m_datas.reroutes.end(); ++rit) {
+                            if (rit->nodeId != selNode) continue;
+                            const uint64_t sid = rit->slotId;
+                            for (auto lit = m_datas.links.begin(); lit != m_datas.links.end(); ) {
+                                if (lit->from == sid || lit->to == sid) {
+                                    lit = m_datas.links.erase(lit);
+                                } else {
+                                    ++lit;
+                                }
+                            }
+                            m_datas.reroutes.erase(rit);
+                            ImNodal::SetSelectedNode(0);
+                            break;
+                        }
+                    }
+                }
+
                 ImNodal::EndGraph();
             }
             ImNodal::EndCanvas();
@@ -206,18 +294,75 @@ void Frame::m_drawGraph() {
         ImGenie::End();
     }
 
-    // --- Bonus : a standalone slot in a plain ImGui window (no BeginGraph) ---
-    // Verifies that the slot primitive works outside of any graph context.
+    // --- Bonus : standalone slots in a plain ImGui window (no BeginGraph) ---
+    // Two linkable slots living entirely outside of any canvas/graph; the
+    // connection-create state machine and Link() work transparently in screen
+    // space.
     if (ImGui::Begin("Free Slot Demo")) {
-        ImGui::TextUnformatted("A slot outside any graph:");
-        if (ImNodal::BeginInputSlot(999, "Var")) {
+        ImGui::TextUnformatted("Slots outside any graph — draggable + linkable:");
+        ImGui::Dummy(ImVec2(0.0f, 4.0f));
+
+        // Source slot on the left, target slot on the right, separated by a
+        // spacer so there's visual room for the link to curve.
+        if (ImNodal::BeginOutputSlot(9001, "Source")) {
             ImNodal::EndSlot();
         }
+        ImGui::SameLine();
+        ImGui::Dummy(ImVec2(160.0f, 0.0f));
+        ImGui::SameLine();
+        if (ImNodal::BeginInputSlot(9002, "Target")) {
+            ImNodal::EndSlot();
+        }
+
+        // Render existing free-window links.
+        for (const auto& l : m_datas.freeLinks) {
+            ImNodal::Link(l.id, l.from, l.to);
+        }
+
+        // Same connection flow as the graph demo.
+        if (ImNodal::BeginConnectionCreate()) {
+            ImNodal::Id f = 0, t = 0;
+            if (ImNodal::QueryNewLink(&f, &t)) {
+                const auto rF = ImNodal::GetSlotRole(f);
+                const auto rT = ImNodal::GetSlotRole(t);
+                const bool ok = (rF == ImNodal::SlotRole_InOut) || (rT == ImNodal::SlotRole_InOut) || (rF != rT);
+                if (ok) {
+                    if (ImNodal::AcceptNewLink()) {
+                        if (rF == ImNodal::SlotRole_Input && rT == ImNodal::SlotRole_Output) std::swap(f, t);
+                        m_datas.freeLinks.push_back({m_datas.nextFreeLinkId++, f, t});
+                    }
+                } else {
+                    ImNodal::RejectNewLink("same direction");
+                }
+            }
+            ImNodal::EndConnectionCreate();
+        }
+
+        // Delete key removes the standalone-selected link (uses the context-level
+        // selection, since we're outside any graph).
+        if (ImGui::IsWindowFocused() && ImGui::IsKeyPressed(ImGuiKey_Delete)) {
+            const ImNodal::Id sel = ImNodal::GetSelectedLink();
+            if (sel != 0) {
+                for (auto lit = m_datas.freeLinks.begin(); lit != m_datas.freeLinks.end(); ++lit) {
+                    if (lit->id == sel) { m_datas.freeLinks.erase(lit); break; }
+                }
+                ImNodal::SetSelectedLink(0);
+            }
+        }
+
         ImGui::Separator();
-        ImGui::TextUnformatted("M1 status:");
+        ImGui::TextUnformatted("M2 status:");
         ImGui::Text("Selected node: %llu", (unsigned long long)ImNodal::GetSelectedNode());
         ImGui::Text("Dragging A: %d", (int)ImNodal::IsNodeDragging(100));
         ImGui::Text("Dragging B: %d", (int)ImNodal::IsNodeDragging(200));
+        ImGui::Text("Graph links: %d", (int)m_datas.links.size());
+        ImGui::Text("Free links: %d", (int)m_datas.freeLinks.size());
+        ImGui::Text("Reroutes: %d", (int)m_datas.reroutes.size());
+        if (ImGui::SmallButton("Clear all links")) {
+            m_datas.links.clear();
+            m_datas.freeLinks.clear();
+            m_datas.reroutes.clear();
+        }
     }
     ImGui::End();
 }

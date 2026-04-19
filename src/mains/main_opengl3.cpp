@@ -90,6 +90,10 @@ static void sUpdate(void*) {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
+    // Per-frame reset of ImNodal state. Must run once per frame before any
+    // ImNodal call (same contract as ImGui::NewFrame).
+    ImNodal::NewFrame();
+
 
     try {
         frame.update(ImVec2(display_w, display_h));

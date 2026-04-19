@@ -39,12 +39,36 @@ private:
         ImNodal::GraphSettings graphSettings;
 
         // Demo graph data (M1) — user-retained positions; ImNodal just echoes.
-        ImVec2 nodeAPos{-150.0f, -60.0f};
-        ImVec2 nodeBPos{ 120.0f, -20.0f};
+        ImVec2 nodeAPos{-200.0f, -60.0f};
+        ImVec2 nodeBPos{ 180.0f, -20.0f};
         float  nodeA_valueA{1.0f};
         float  nodeA_valueB{2.0f};
         float  nodeB_multiplier{0.5f};
         bool   nodalContextCreated{false};
+
+        // Demo links (M2) — user-retained: ImNodal draws them from slot IDs.
+        struct LinkRecord {
+            uint64_t id;
+            uint64_t from;
+            uint64_t to;
+        };
+        std::vector<LinkRecord> links{};
+        uint64_t nextLinkId{1000};
+
+        // Demo reroutes (M2) — created by double-clicking a link.
+        struct RerouteRecord {
+            uint64_t nodeId;
+            uint64_t slotId;
+            ImVec2   pos;
+        };
+        std::vector<RerouteRecord> reroutes{};
+        uint64_t nextRerouteNodeId{3000};
+        uint64_t nextRerouteSlotId{4000};
+
+        // Standalone slot demo (M2) — two linkable slots in a plain ImGui window,
+        // no BeginCanvas / BeginGraph involved.
+        std::vector<LinkRecord> freeLinks{};
+        uint64_t nextFreeLinkId{5000};
     } m_datas;
 
     LoadTextureFunc m_loadTextureFunc{};
